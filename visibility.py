@@ -126,6 +126,10 @@ def visibility_polygon(p, pol):
 
     is_visible = True
     max_angle = 0
+    # Dùng để lưu lại điểm đang xét
+    # test_point_1 = [0,0]
+    # test_point_2 = [0,0]
+
     while track != init_index:
         vis_len = len(visibility_set)
         # Trường hợp duyệt qua các cạnh nhỏ hơn góc 360 độ
@@ -200,6 +204,10 @@ def visibility_polygon(p, pol):
                         # Ta push giao điểm từ p đến cạnh vừa xét và push điểm cuối cùng của cạnh đang xét.                    
                         visibility_set.append(intersect_point)
                         visibility_set.append(pol[track])
+                        # if abs(pol[track][0] - 438) < delta and abs(pol[track][1] - 237) < delta:
+                            # test_point_1 = intersect_point
+                            # test_point_2 = pol[(track + check_wise) % number_of_edge]
+                            # test_point_3 = pol[track]
 
         # Trường hợp duyệt qua các cạnh góc lớn hơn 360 độ và bị khuất bởi các cạnh đầu tiên.
         else:
@@ -209,9 +217,10 @@ def visibility_polygon(p, pol):
                 is_visible = True
             else:
                 prev_point = pol[track]
+        if abs(pol[track][0] - pol[(track + check_wise) % number_of_edge][0]) < delta and abs(pol[track][1] - pol[(track + check_wise) % number_of_edge][1]) < delta and track != init_index:
+            track = (track + check_wise) % number_of_edge
         track = (track + check_wise) % number_of_edge
 
-    track_complete = track
     #Delete 2 adjacent point with same coordinate:
     vis_len = len(visibility_set)
     visibility_set_shorten = []
