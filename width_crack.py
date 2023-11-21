@@ -273,10 +273,12 @@ def shortest_edge(p1,p2,q1,q2,p):
     return np.array([i,j])
 
 #Main algorithm
-def width_crack(p, pol):
+def width_crack(p, pol1):
     # Check if line that go through a and b pass p
     def check_straight(a,b,p):
         return (onSegment(a,p,b) or onSegment(b,p,a))
+
+    pol = visibility_polygon(p ,pol1)
 
     m = len(pol)-1
     count = 0
@@ -285,6 +287,7 @@ def width_crack(p, pol):
 
      # Check if p is in the boundary
     while count <= m:
+        # print("(", pol[count][0], ", ", pol[count][1], ") ")
         if onSegment(pol[count], pol[(count + 1) % m], p):
             return (0,pol[count], pol[(count + 1) % m], p)
         if (check_straight(pol[count], pol[(count+1) % m], p) == False):
@@ -313,7 +316,7 @@ def width_crack(p, pol):
         else:
             i = i+1
 
-    return min_value, min_x, min_y
+    return min_value, min_x, min_y, pol
     # return [min_x, min_y]
 
 

@@ -52,9 +52,12 @@ def check_side(p,a,b):
     return x_p >= max(x_a, x_b) or x_p <= min(x_a,x_b)
 
 #check angle of 2 line:
-def angle_of_ray(p,q1,q2):
+def angle_of_ray(p,q1,q2, incase = 0):
     xdiff = (q1[0] - p[0], q1[1] - p[1])
     ydiff = (q2[0] - p[0], q2[1] - p[1])
+
+    if abs(q1[0] - q2[0]) < delta and abs(q1[1] - q2[1]) < delta:
+        print("Error in case: ", q1, " and ", q2, " with p = ", p, " in case ", incase)
 
     angle = (math.asin((xdiff[0] * ydiff[1] - xdiff[1] * ydiff[0])/math.sqrt((xdiff[0] * xdiff[0] + xdiff[1] * xdiff[1]) * (ydiff[0] * ydiff[0] + ydiff[1] * ydiff[1]))))
     
@@ -90,7 +93,7 @@ def visibility_polygon(p, pol):
         distance_from_p = distance(p,intersect)
         if onSegment(pol[track], pol[(track + 1) % number_of_edge], intersect) and check_side(p,intersect,p1):
             if min_distance == distance_from_p:
-                if angle_of_ray(pol[track], pol[(track + 1) % number_of_edge], pol[(track - 1) % number_of_edge]) <= math.pi:
+                if angle_of_ray(pol[track], pol[(track + 1) % number_of_edge], pol[(track - 1) % number_of_edge], 1) <= math.pi:
                     init_vertex_1 = pol[track]
                     init_vertex_2 = pol[(track + 1) % number_of_edge]
                     index = track
@@ -135,9 +138,12 @@ def visibility_polygon(p, pol):
         # Trường hợp duyệt qua các cạnh nhỏ hơn góc 360 độ
         if is_visible:
 
-            if angle_of_ray(p, p1, visibility_set[vis_len-1]) > max_angle:
+            if angle_of_ray(p, p1, visibility_set[vis_len-1], 2) > max_angle:
                 max_angle = angle_of_ray(p, p1, visibility_set[vis_len-1])
-            angle_diff = angle_of_ray(p, visibility_set[vis_len-1], pol[track])
+            if abs(visibility_set[vis_len-1][0] - pol[track][0]) < delta and abs(visibility_set[vis_len-1][0] - pol[track][0]) < delta:
+                track = (track + check_wise) % number_of_edge
+                continue
+            angle_diff = angle_of_ray(p, visibility_set[vis_len-1], pol[track], 3)
 
             # Trường hợp 1: Các cạnh xoay theo chiều ngược kim đồng hồ, ta xét 2 trường hợp nhỏ
             if angle_diff <= math.pi:
@@ -155,9 +161,9 @@ def visibility_polygon(p, pol):
             # Trường hợp 2: Các cạnh xoay theo chiều ngược kim đồng hồ, ta xét 2 trường hợp nhỏ
             else:
                 # Trường hợp 2.1: Cạnh này visible từ p và nằm phía sau các cạnh trong visibility_set
-                if (visibility_set[vis_len-1][0] == visibility_set[vis_len-2][0] and visibility_set[vis_len-1][1] == visibility_set[vis_len-2][1]) or angle_of_ray(visibility_set[vis_len-1], visibility_set[vis_len-2], pol[track]) <= math.pi:
+                if (visibility_set[vis_len-1][0] == visibility_set[vis_len-2][0] and visibility_set[vis_len-1][1] == visibility_set[vis_len-2][1]) or angle_of_ray(visibility_set[vis_len-1], visibility_set[vis_len-2], pol[track], 4) <= math.pi:
                     # Ta duyệt đến cạnh tiếp theo visible từ p
-                    while angle_of_ray(p, visibility_set[vis_len-1], pol[track]) > math.pi:
+                    while angle_of_ray(p, visibility_set[vis_len-1], pol[track], 5) > math.pi:
                         last_point = pol[track]
                         track = (track + check_wise) % number_of_edge
 
@@ -173,14 +179,14 @@ def visibility_polygon(p, pol):
                     is_hidden = False
                     visibility_set.pop()
                     track_index = vis_len-2
-                    angle_different = angle_of_ray(p ,visibility_set[track_index], pol[track])
+                    angle_different = angle_of_ray(p ,visibility_set[track_index], pol[track], 6)
 
                     # Ta vừa duyệt vừa xóa phần tử trong visibility_set
                     while angle_different > math.pi and angle_different < 2*math.pi - delta and is_hidden == False:
                         last_removed_point = visibility_set[track_index]       #last_point is point next to track_index
                         visibility_set.pop()
                         track_index -= 1
-                        angle_different = angle_of_ray(p ,visibility_set[track_index], pol[track])
+                        angle_different = angle_of_ray(p ,visibility_set[track_index], pol[track], 7)
                         is_hidden = check_intersect(first_removed_point, pol[track], visibility_set[track_index], last_removed_point)
 
                     # Trường hợp 2.2.1: Việc pop phần tử dừng lại khi một cạnh trong visibility_set mà cắt cạnh đang xét.
