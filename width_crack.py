@@ -10,7 +10,7 @@ import sknw
 dummy_ske = np.zeros([4, 4, 3], dtype=np.uint8)
 sknw.build_sknw(dummy_ske)
 
-# from lib_computing_crack import *
+import time
 
 largest_range = 1000000000
 delta = 0.0000005
@@ -150,7 +150,7 @@ def check_visible(p1, p2, q1, q2, p):
 
     # Check whether c lies between a and b with condition a,b,c are in straight line.
     def lies_between(a,b,c):
-        return c[0] >= min(a[0] - delta,b[0] - delta) and c[0] <= max(a[0] + delta,b[0] + delta) and c[1] >= min(a[1] - delta,b[1] - delta) and c[1] <= max(a[1] + delta,b[1] + delta)
+        return c[0]+delta >= min(a[0], b[0]) and c[0]-delta <= max(a[0], b[0]) and c[1]+delta >= min(a[1], b[1]) and c[1]-delta <= max(a[1],b[1])
 
     if p2[0] == q1[0] and p2[1] == q1[1]:
         alpha1 = angle_between_2_lines(p,p1,p,p2)
@@ -272,26 +272,85 @@ def shortest_edge(p1,p2,q1,q2,p):
 
     return np.array([i,j])
 
-#Main algorithm
+################################### Width Crack ###################################
 def width_crack(p, pol1):
+    # Check whether two points are concide
+    def isConcide(point1 , point2):
+        return (abs(point1[0] - point2[0]) < delta and abs(point1[1] - point2[1]) < delta)
+    
+    size = len(pol1)                     # number of edge
+    pol = []
+
+    # Check whether p is in any edge
+    count_point = 0
+    while count_point < size-1:
+        if onSegment(pol1[count_point], pol1[count_point+1], p):
+            return 0, p, p
+        pol.append(pol1[count_point])
+        count_point = count_point + 1
+
+    if onSegment(pol1[0], pol1[size-1], p):
+        return 0, p, p
+    pol.append(pol1[size-1])
+
+    # Main Loop
+    pol.append(pol[0])
+    count_point_1 = 0
+
+    min_value = largest_range
+
+    # start_time = time.time()
+    while count_point_1 < size:
+        if isConcide(pol[count_point_1], pol[count_point_1+1]) or onSegment(pol[count_point_1], p, pol[count_point_1+1]) or onSegment(pol[count_point_1+1], p, pol[count_point_1]):
+            count_point_1 = count_point_1 + 1    
+            continue
+        count_point_2 = count_point_1 + 1
+        while count_point_2 < size:
+            if isConcide(pol[count_point_2], pol[count_point_2+1]) or onSegment(pol[count_point_2], p, pol[count_point_2+1]) or onSegment(pol[count_point_2+1], p, pol[count_point_2]):
+                count_point_2 = count_point_2 + 1
+                continue
+            if check_visible(pol[count_point_1], pol[count_point_1+1], pol[count_point_2], pol[count_point_2+1], p) == False:
+                count_point_2 = count_point_2 + 1
+                continue
+            try:
+                pair_points = shortest_edge(pol[count_point_1], pol[count_point_1+1], pol[count_point_2], pol[count_point_2+1], p)
+                if(distance(pair_points[0], pair_points[1]) < min_value):
+                    min_value = distance(pair_points[0], pair_points[1])
+                    min_x = pair_points[0]
+                    min_y = pair_points[1]
+            except:
+                print("Error at edge: ", pol[count_point_1], pol[count_point_1+1], pol[count_point_2], pol[count_point_2+1])    
+
+            count_point_2 = count_point_2 + 1
+        count_point_1 = count_point_1 + 1    
+    
+    # end_time = time.time()
+    # print("Main while time: ", end_time - start_time)
+
+    return min_value, min_x, min_y
+
+################################### Optimal Width Crack ###################################
+def optimal_width_crack(p, pol):
     # Check if line that go through a and b pass p
     def check_straight(a,b,p):
         return (onSegment(a,p,b) or onSegment(b,p,a))
 
-    pol = visibility_polygon(p ,pol1)
+    # start_time = time.time()
+    vis_pol = visibility_polygon(p ,pol)
+    
 
-    m = len(pol)
+    size = len(vis_pol)
     count = 0
     k = 0
     t = []
 
      # Check if p is in the boundary
-    while count < m:
+    while count < size:
         # print("(", pol[count][0], ", ", pol[count][1], ") ")
-        if onSegment(pol[count], pol[(count + 1) % m], p):
-            return (0,pol[count], pol[(count + 1) % m], p)
-        if (check_straight(pol[count], pol[(count+1) % m], p) == False):
-            t.append([pol[count], pol[(count+1) % m]])
+        if onSegment(vis_pol[count], vis_pol[(count + 1) % size], p):
+            return (0, vis_pol[count], vis_pol[(count + 1) % size], p)
+        if (check_straight(vis_pol[count], vis_pol[(count+1) % size], p) == False):
+            t.append([vis_pol[count], vis_pol[(count+1) % size]])
             k = k+1 
         count += 1 
 
@@ -303,6 +362,7 @@ def width_crack(p, pol1):
 
     i = 0
     j = i_o
+    
     # test_set = (t[i][0], t[i][1], t[j][0], t[j][1])
     while i<=i_o and j<k:
         pair_points = shortest_edge(t[i][0], t[i][1], t[j][0], t[j][1], p)
@@ -310,15 +370,11 @@ def width_crack(p, pol1):
             min_value = distance(pair_points[0], pair_points[1])
             min_x = pair_points[0]
             min_y = pair_points[1]
-            test_set = [t[i], t[j]]
+            # test_set = [t[i], t[j]]
         if(j < k-1 and check_visible(t[i][0], t[i][1], t[j+1][0], t[j+1][1], p) == True):
             j = j+1
         else:
             i = i+1
 
-    return min_value, min_x, min_y, pol
+    return min_value, min_x, min_y, vis_pol
     # return [min_x, min_y]
-
-
-
-

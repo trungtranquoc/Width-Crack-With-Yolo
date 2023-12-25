@@ -54,7 +54,8 @@ for k in [1/Num_p*i for i in range(Num_p+1)]:
         # p = [144, 160]
 
         # Cập nhật code chỗ này
-        p_width, min_u, min_v, visibility_set = width_crack(p, crack)
+        p_width, min_u, min_v, visibility_set = optimal_width_crack(p, crack)
+        # p_width, min_u, min_v = width_crack(p, crack)
         ######
 
         u = [min_u[0], min_v[0]]
@@ -86,7 +87,7 @@ for k in [1/Num_p*i for i in range(Num_p+1)]:
 
 # Cập nhật code chỗ này
 # plt.plot(standard_width[:, 0], standard_width[:, 1], color='red', linewidth=1, label=str(round(standard_width_lenght*k_width,3))+' mm')
-plt.plot(minU, minV, color='green', linewidth=1, label=str(round(standard_width_lenght*k_width,3))+' mm')
+# plt.plot(minU, minV, color='green', linewidth=1, label=str(round(standard_width_lenght*k_width,3))+' mm')
 #####
 
 plt.scatter(standard_set[:, 0], standard_set[:, 1], s=0.05, color='yellow')
