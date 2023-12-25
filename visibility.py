@@ -140,9 +140,9 @@ def visibility_polygon(p, pol):
 
             if angle_of_ray(p, p1, visibility_set[vis_len-1], 2) > max_angle:
                 max_angle = angle_of_ray(p, p1, visibility_set[vis_len-1])
-            if abs(visibility_set[vis_len-1][0] - pol[track][0]) < delta and abs(visibility_set[vis_len-1][0] - pol[track][0]) < delta:
-                track = (track + check_wise) % number_of_edge
-                continue
+            # if abs(visibility_set[vis_len-1][0] - pol[track][0]) < delta and abs(visibility_set[vis_len-1][0] - pol[track][0]) < delta:
+            #     track = (track + check_wise) % number_of_edge
+            #     continue
             angle_diff = angle_of_ray(p, visibility_set[vis_len-1], pol[track], 3)
 
             # Trường hợp 1: Các cạnh xoay theo chiều ngược kim đồng hồ, ta xét 2 trường hợp nhỏ

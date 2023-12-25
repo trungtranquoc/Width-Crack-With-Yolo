@@ -280,13 +280,13 @@ def width_crack(p, pol1):
 
     pol = visibility_polygon(p ,pol1)
 
-    m = len(pol)-1
+    m = len(pol)
     count = 0
     k = 0
     t = []
 
      # Check if p is in the boundary
-    while count <= m:
+    while count < m:
         # print("(", pol[count][0], ", ", pol[count][1], ") ")
         if onSegment(pol[count], pol[(count + 1) % m], p):
             return (0,pol[count], pol[(count + 1) % m], p)
@@ -305,12 +305,12 @@ def width_crack(p, pol1):
     j = i_o
     # test_set = (t[i][0], t[i][1], t[j][0], t[j][1])
     while i<=i_o and j<k:
-        array = shortest_edge(t[i][0], t[i][1], t[j][0], t[j][1], p)
-        if(distance(array[0], array[1]) < min_value):
-            min_value = distance(array[0], array[1])
-            min_x = array[0]
-            min_y = array[1]
-            test_set = (t[i][0], t[i][1], t[j][0], t[j][1])
+        pair_points = shortest_edge(t[i][0], t[i][1], t[j][0], t[j][1], p)
+        if(distance(pair_points[0], pair_points[1]) < min_value):
+            min_value = distance(pair_points[0], pair_points[1])
+            min_x = pair_points[0]
+            min_y = pair_points[1]
+            test_set = [t[i], t[j]]
         if(j < k-1 and check_visible(t[i][0], t[i][1], t[j+1][0], t[j+1][1], p) == True):
             j = j+1
         else:
